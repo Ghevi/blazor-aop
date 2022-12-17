@@ -1,0 +1,64 @@
+﻿@page "/"
+
+@using BlazorAOP.Data
+
+@inject IWeatherForecastService ForecastService
+@inject FakeAuthenticationStateProvider FakeAuth
+
+<PageTitle>Try Proxy</PageTitle>
+
+<h1>Try Proxy</h1>
+
+<h2 class="@_proxyResultClass">@_proxyResult</h2>
+
+@code {
+    private String _proxyResult = String.Empty;
+    private String _proxyResultClass = String.Empty;
+    private Int32 _retryIn = 3;
+
+    private PeriodicTimer _timer = new(TimeSpan.FromSeconds(1));
+
+    protected override async Task OnAfterRenderAsync(Boolean firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await CallProxyMethod();
+            }
+            catch (Exception ex)
+            {
+                _proxyResultClass = "text-danger";
+                while (await _timer.WaitForNextTickAsync())
+                {
+                    if (_retryIn == 0) break;
+
+                    _proxyResult = $"{ex.Message}, retrying...{_retryIn}";
+                    await InvokeAsync(StateHasChanged);
+
+                    _retryIn--;
+                }
+                FakeAuth.IsAuthenticated = true;
+                await CallProxyMethod();
+            }
+            finally
+            {
+                FakeAuth.IsAuthenticated = false;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task CallProxyMethod()
+    {
+        _proxyResultClass = String.Empty;
+        _proxyResult = "Calling method";
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(1500);
+        ForecastService.ClearSummaries();
+        _proxyResultClass = "text-success";
+        _proxyResult = "Method called succesfully";
+    }
+}

@@ -1,20 +1,17 @@
+using Microsoft.AspNetCore.Components.Authorization;
+
 namespace BlazorAOP.Data
 {
-    public class WeatherForecastService
+    public class WeatherForecastService : IWeatherForecastService
     {
-        private static readonly string[] Summaries = new[]
+        private String[] Summaries = new[]
         {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+        };
 
-        public Task<WeatherForecast[]> GetForecastAsync(DateOnly startDate)
+        public void ClearSummaries()
         {
-            return Task.FromResult(Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = startDate.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            }).ToArray());
+            Summaries = Array.Empty<String>();
         }
     }
 }
